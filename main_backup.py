@@ -13,8 +13,7 @@ from utils.xianyu_utils import generate_mid, generate_uuid, trans_cookies, gener
 from XianyuAgent参考 import XianyuReplyBot  # 闲鱼自动回复机器人
 from context_manager import ChatContextManager  # 聊天上下文管理器
 from 使用5000接口最简 import 问ai
-from datetime import datetime
-import requests
+
 # 转到当前目录
 os.chdir(Path(__file__).parent)
 
@@ -37,13 +36,6 @@ class XianyuLive:
         self.last_heartbeat_response = 0  # 上次收到心跳响应的时间戳
         self.heartbeat_task = None  # 心跳任务对象
         self.ws = None  # WebSocket连接对象
-        # 加载商品信息json
-        try:
-            with open('XianyuAutoAgent/商品信息.json', 'r', encoding='utf-8') as f:
-                商品信息列表 = json.load(f)
-            self.商品信息字典 = {item['商品id']: item for item in 商品信息列表}
-        except Exception:
-            self.商品信息字典 = {}
 
     async def send_msg(self, ws, cid, toid, text):
         """
@@ -180,37 +172,6 @@ class XianyuLive:
             )
         except Exception:
             return False
-    
-    def _获取超级简历验证码(self, timeout: float = 15.0, interval: float = 1.0):
-        print("开始获取验证码")
-        global 超级简历验证码
-        start_time = time.time()
-        while time.time() - start_time < timeout:
-            try:
-                post_data = self._得到验证码和时间()
-            except Exception as e:
-                time.sleep(interval)
-                continue
-            if post_data['验证码'] != 超级简历验证码:
-                超级简历验证码 = post_data['验证码']
-                now_str = post_data['现在的时间']
-                code_time_str = post_data['验证码的时间']
-                # 假设格式为 "2025-05-18 22:29:58"
-                fmt = "%Y-%m-%d %H:%M:%S"
-                now = datetime.strptime(now_str, fmt)
-                code_time = datetime.strptime(code_time_str, fmt)
-                diff_seconds = (now - code_time).total_seconds()
-                # 如果相差时间超过5分钟 则返回None
-                if diff_seconds > 300:return None,None
-                return post_data['验证码'], diff_seconds
-            time.sleep(interval)
-        return None,None
-    
-    def _得到验证码和时间(self):
-        # 发送get请求 获取验证码
-        host='http://localhost:12568'
-        response=requests.get(host)
-        return response.json()
 
     def is_typing_status(self, message):
         """判断消息是否为用户正在输入状态"""
@@ -280,24 +241,7 @@ class XianyuLive:
                 return
 
             # # 判断是否为订单消息, 需根据业务逻辑处理 对方把黄色按钮点灰色了
-            # try:
-            #     if message['3']['redReminder'] == '等待买家付款':
-            #         user_id = message['1'].split('@')[0]
-            #         user_url = f'https://www.goofish.com/personal?userId={user_id}'
-            #         logger.info(f'等待买家 {user_url} 付款')
-            #         return
-            #     elif message['3']['redReminder'] == '交易关闭':
-            #         user_id = message['1'].split('@')[0]
-            #         user_url = f'https://www.goofish.com/personal?userId={user_id}'
-            #         logger.info(f'卖家 {user_url} 交易关闭')
-            #         return
-            #     elif message['3']['redReminder'] == '等待卖家发货': # 付款后就有这个
-            #         user_id = message['1'].split('@')[0]
-            #         user_url = f'https://www.goofish.com/personal?userId={user_id}'
-            #         logger.info(f'交易成功 {user_url} 等待卖家发货')
-            #         return
-            # except:
-            #     pass  # 订单消息处理异常忽略
+            # try: if message['3']['redReminder'] == '等待买家付款' 交易关闭 等待卖家发货 
 
             # 判断消息类型
             if self.is_typing_status(message):
@@ -318,23 +262,21 @@ class XianyuLive:
             url_info = message["1"]["10"]["reminderUrl"]  # 商品链接
             item_id = url_info.split("itemId=")[1].split("&")[0] if "itemId=" in url_info else None  # 提取商品ID
             if not item_id:return # 没有商品ID直接返回
+            # 到这，过滤出其他人的聊天信息
 
             try:
                 task_name = json.loads(message["1"]["10"]['bizTag']).get('taskName', '')
                 if any(x in task_name for x in ['已拍下', '未付款']):
-                    await self.send_msg(websocket, cid, send_user_id, "等你付钱")
-                    if item_id == "926003417058":
+                    if item_id == "925387494467":
                         await self.send_msg(websocket, cid, send_user_id, "手机号：19860510350 尽快付款获取验证码登录")
                         return
+                    await self.send_msg(websocket, cid, send_user_id, "等你付钱")
                 if any(x in task_name for x in ['已付款', '待发货']):
-                    await self.send_msg(websocket, cid, send_user_id, "等我发货")
-                    if item_id == "926003417058":
-                        print("开始获取验证码")
-                        阻塞获取验证码,_=self._获取超级简历验证码()
-                        if 阻塞获取验证码:
-                            await self.send_msg(websocket, cid, send_user_id, "验证码："+阻塞获取验证码)
-                        else:
-                            await self.send_msg(websocket, cid, send_user_id, "验证码获取失败你小子可能没用我手机发验证码哦，请联系管理员电话13631902746 wx：lanendiencgr")
+                    if item_id == "925387494467":
+                        
+                        await self.send_msg(websocket, cid, send_user_id, "等我发货")
+                    # todo 自动获取超级简历的验证码
+                    
                     return
             except Exception as e:
                 logger.debug(f"解析bizTag出错: {e}")
@@ -343,8 +285,16 @@ class XianyuLive:
             if (time.time() * 1000 - create_time) > 300000:
                 logger.debug("当前消息是5分钟前，过期消息丢弃")
                 return
+                
             
-            item_info = self.get_item_info_from_json_or_api(item_id)
+            if item_id == "924523879200":
+                item_info = {
+                    "desc": "测试商品",
+                    "soldPrice": 0.01
+                }
+            else:
+                # 这里会跳验证码
+                item_info = self.xianyu.get_item_info(self.cookies, item_id)['data']['itemDO']  # 获取商品详情
             item_description = f"{item_info['desc']};当前商品售卖价格为:{str(item_info['soldPrice'])}"  # 商品描述
             
             logger.info(f"user: {send_user_name}, 发送消息: {send_message} 商品id: {item_id} 价格: {item_info['soldPrice']}")
@@ -362,7 +312,7 @@ class XianyuLive:
                 f"历史对话上下文：{context}"
             )
             bot_reply = 问ai(prompt,"你是咸鱼客服自动回复机器人，帮我回答用户的问题")
-            await self.send_msg(websocket, cid, send_user_id, '（自动回复）：'+bot_reply)
+            await self.send_msg(websocket, cid, send_user_id, '机器人代回：'+bot_reply)
             # 添加机器人回复到上下文
             self.context_manager.add_message(send_user_id, item_id, "assistant", bot_reply)
             
@@ -526,22 +476,12 @@ class XianyuLive:
                         pass
                 await asyncio.sleep(5)  # 等待5秒后重连
 
-    def get_item_info_from_json_or_api(self, item_id):
-        item = self.商品信息字典.get(item_id)
-        if item:
-            return {
-                "desc": item["商品信息"],
-                "soldPrice": float(item["价格"])
-            }
-        else:
-            # 走原有API
-            return self.xianyu.get_item_info(self.cookies, item_id)['data']['itemDO']
 
 if __name__ == '__main__':
     # 加载环境变量中的cookie字符串
     load_dotenv()  # 加载.env文件
     cookies_str = os.getenv("COOKIES_STR")  # 获取COOKIES_STR环境变量
-    # bot = XianyuReplyBot()  # 初始化自动回复机器人（如需手动实例化可取消注释）
+    bot = XianyuReplyBot()  # 初始化自动回复机器人（如需手动实例化可取消注释）
     xianyuLive = XianyuLive(cookies_str)  # 创建XianyuLive实例
     # 常驻进程，启动主循环
     asyncio.run(xianyuLive.main())

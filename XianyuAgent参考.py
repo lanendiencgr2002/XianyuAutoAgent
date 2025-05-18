@@ -1,16 +1,46 @@
 import re
 from typing import List, Dict
 import os
-from openai import OpenAI
+import requests
 from loguru import logger
+
+
+class HTTPChatClient:
+    def __init__(self, api_url, api_key, model):
+        self.api_url = api_url
+        self.api_key = api_key
+        self.model = model
+
+    def chat(self, messages, temperature=0.4, max_tokens=500, top_p=0.8, extra_body=None):
+        payload = {
+            "messages": messages,
+            "model": self.model,
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+            "top_p": top_p,
+        }
+        if extra_body:
+            payload.update(extra_body)
+        headers = {
+            'accept': 'application/json',
+            'authorization': f'Bearer {self.api_key}',
+            'content-type': 'application/json',
+        }
+        response = requests.post(self.api_url, headers=headers, json=payload)
+        if response.status_code != 200:
+            raise Exception(f"API请求失败: {response.text}")
+        data = response.json()
+        # 兼容 openai 返回格式
+        return data['choices'][0]['message']['content']
 
 
 class XianyuReplyBot:
     def __init__(self):
-        # 初始化OpenAI客户端
-        self.client = OpenAI(
+        # 初始化HTTP客户端
+        self.client = HTTPChatClient(
+            api_url="https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
             api_key=os.getenv("OPENAI_API_KEY"),
-            base_url="https://dashscope.aliyuncs.com/compatible-mode/v1"
+            model="deepseek-v3-241226"
         )
         self._init_system_prompts()
         self._init_agents()
@@ -212,14 +242,13 @@ class BaseAgent:
 
     def _call_llm(self, messages: List[Dict], temperature: float = 0.4) -> str:
         """调用大模型"""
-        response = self.client.chat.completions.create(
-            model="qwen-max",
+        response = self.client.chat(
             messages=messages,
             temperature=temperature,
             max_tokens=500,
             top_p=0.8
         )
-        return response.choices[0].message.content
+        return response
 
 
 class PriceAgent(BaseAgent):
@@ -231,14 +260,13 @@ class PriceAgent(BaseAgent):
         messages = self._build_messages(user_msg, item_desc, context)
         messages[0]['content'] += f"\n▲当前议价轮次：{bargain_count}"
 
-        response = self.client.chat.completions.create(
-            model="qwen-max",
+        response = self.client.chat(
             messages=messages,
             temperature=dynamic_temp,
             max_tokens=500,
             top_p=0.8
         )
-        return self.safety_filter(response.choices[0].message.content)
+        return self.safety_filter(response)
 
     def _calc_temperature(self, bargain_count: int) -> float:
         """动态温度策略"""
@@ -252,8 +280,7 @@ class TechAgent(BaseAgent):
         messages = self._build_messages(user_msg, item_desc, context)
         # messages[0]['content'] += "\n▲知识库：\n" + self._fetch_tech_specs()
 
-        response = self.client.chat.completions.create(
-            model="qwen-max",
+        response = self.client.chat(
             messages=messages,
             temperature=0.4,
             max_tokens=500,
@@ -263,7 +290,7 @@ class TechAgent(BaseAgent):
             }
         )
 
-        return self.safety_filter(response.choices[0].message.content)
+        return self.safety_filter(response)
 
 
     # def _fetch_tech_specs(self) -> str:
