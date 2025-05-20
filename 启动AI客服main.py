@@ -12,7 +12,7 @@ from pathlib import Path
 from utils.xianyu_utils import generate_mid, generate_uuid, trans_cookies, generate_device_id, decrypt
 from XianyuAgent参考 import XianyuReplyBot  # 闲鱼自动回复机器人
 from context_manager import ChatContextManager  # 聊天上下文管理器
-from 使用5000接口最简 import 问ai
+from ai_api import 问ai
 from datetime import datetime
 import requests
 # 转到当前目录
