@@ -1,7 +1,8 @@
 from flask import Flask, render_template, request, jsonify
 import json 
 from datetime import datetime
-import re   
+import re 
+import os
 app = Flask(__name__)
 验证码,验证码的时间=None,None
 手机号='19860510350'
@@ -37,4 +38,11 @@ def 得到验证码和时间():
 
 
 if __name__ == '__main__':
+    print("超级简历接码服务器，当前工作目录：", os.getcwd())
+    print('当前目录下文件：', os.listdir(os.getcwd()))
+    try:
+        # static下目录文件
+        print('static下目录文件：', os.listdir(os.path.join(os.getcwd(), 'static')))
+    except Exception as e:
+        print('获取static下目录文件时出错：', e)
     app.run(host='0.0.0.0', port=12568)

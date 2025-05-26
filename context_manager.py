@@ -66,6 +66,21 @@ class ChatContextManager:
         )
         ''')
         
+        # 创建订单表
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS orders (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT NOT NULL,
+            item_id TEXT NOT NULL,
+            customer_name TEXT,
+            is_ordered INTEGER DEFAULT 0, -- 0: 未下单, 1: 已下单
+            is_paid INTEGER DEFAULT 0,   -- 0: 未付款, 1: 已付款
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            price REAL NOT NULL,
+            description TEXT NOT NULL
+        )
+        ''')
+        
         conn.commit()
         conn.close()
         logger.info(f"聊天历史数据库初始化完成: {self.db_path}")
@@ -387,4 +402,112 @@ class ChatContextManager:
             return backup_path
         except Exception as e:
             logger.error(f"备份数据库时出错: {e}")
-            return None 
+            return None
+
+    def add_order(self, user_id, item_id, price, description, is_ordered, is_paid, customer_name=None):
+        """
+        新增订单记录
+        Args:
+            user_id: 用户ID
+            item_id: 商品ID
+            price: 商品价格
+            description: 商品描述
+            is_ordered: 是否下单（必须指定）
+            is_paid: 是否付款（必须指定）
+            customer_name: 客户名称（可选）
+        Returns:
+            int: 新订单的ID，失败返回None
+        """
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        try:
+            cursor.execute(
+                """
+                INSERT INTO orders (user_id, item_id, customer_name, is_ordered, is_paid, created_at, price, description)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (user_id, item_id, customer_name, is_ordered, is_paid, datetime.now().isoformat(), price, description)
+            )
+            order_id = cursor.lastrowid
+            conn.commit()
+            logger.info(f"新增订单: user_id={user_id}, item_id={item_id}, order_id={order_id}")
+            return order_id
+        except Exception as e:
+            logger.error(f"新增订单时出错: {e}")
+            conn.rollback()
+            return None
+        finally:
+            conn.close()
+
+    def get_order(self, user_id, item_id):
+        """
+        查询指定用户和商品的最新订单信息。
+
+        检索orders表中与给定user_id和item_id匹配的最新订单记录（按创建时间降序），
+        并以字典形式返回订单详细信息。如果未找到订单，则返回None。
+
+        Args:
+            user_id (str): 用户ID。
+            item_id (str): 商品ID。
+
+        Returns:
+            dict or None: 包含订单详细信息的字典，字段包括
+                - id (int): 订单ID
+                - user_id (str): 用户ID
+                - item_id (str): 商品ID
+                - customer_name (str): 客户名称
+                - is_ordered (int): 是否下单（0/1）
+                - is_paid (int): 是否付款（0/1）
+                - created_at (str): 订单创建时间（ISO格式）
+                - price (float): 商品价格
+                - description (str): 商品描述
+            如果未找到订单或查询出错，返回None。
+
+        Raises:
+            无直接抛出异常，查询异常时返回None并记录日志。
+
+        Examples:
+            >>> manager = ChatContextManager()
+            >>> order = manager.get_order("user123", "item456")
+            >>> if order:
+            ...     print(order["is_paid"])
+            ... else:
+            ...     print("未找到订单")
+
+        Notes:
+            - 只返回最新一条订单记录（按created_at降序）。
+            - 查询失败时会自动记录日志。
+
+        """
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        try:
+            cursor.execute(
+                """
+                SELECT id, user_id, item_id, customer_name, is_ordered, is_paid, created_at, price, description
+                FROM orders WHERE user_id = ? AND item_id = ?
+                ORDER BY created_at DESC LIMIT 1
+                """,
+                (user_id, item_id)
+            )
+            row = cursor.fetchone()
+            if row:
+                order = {
+                    "id": row[0],
+                    "user_id": row[1],
+                    "item_id": row[2],
+                    "customer_name": row[3],
+                    "is_ordered": row[4],
+                    "is_paid": row[5],
+                    "created_at": row[6],
+                    "price": row[7],
+                    "description": row[8]
+                }
+                return order
+            else:
+                return None
+        except Exception as e:
+            logger.error(f"查询订单时出错: {e}")
+            return None
+        finally:
+            conn.close() 

@@ -17,9 +17,14 @@ from datetime import datetime
 import requests
 # 转到当前目录
 os.chdir(Path(__file__).parent)
+# 当前文件所在目录
+print('当前文件所在目录：',Path(__file__).parent)
+# 当前工作目录
+print('当前工作目录：',os.getcwd())
+# 当前目录以下文件
+print('当前目录以下文件：',os.listdir(Path(__file__).parent))
 
 超级简历验证码=None
-
 class XianyuLive:
     def __init__(self, cookies_str):
         self.xianyu = XianyuApis()  # 初始化API接口对象
@@ -38,13 +43,19 @@ class XianyuLive:
         self.heartbeat_task = None  # 心跳任务对象
         self.ws = None  # WebSocket连接对象
         # 加载商品信息json
+        # 这里还要兼容服务器上的商品信息.json
         try:
-            with open('XianyuAutoAgent/商品信息.json', 'r', encoding='utf-8') as f:
+            path=os.path.join(os.getcwd(),'商品信息.json')
+            print(path)
+            with open(path, 'r', encoding='utf-8') as f:
                 商品信息列表 = json.load(f)
+            # ids:{json字典}
             self.商品信息字典 = {item['商品id']: item for item in 商品信息列表}
-        except Exception:
-            self.商品信息字典 = {}
-
+            logger.info("XianyuAutoAgent 商品信息.json文件存在")
+        except Exception as e:
+            logger.info("XianyuAutoAgent 商品信息.json文件不存在")
+            logger.error(f" 商品信息.json文件不存在: {e}")
+           
     async def send_msg(self, ws, cid, toid, text):
         """
         发送聊天消息到指定用户（闲鱼WebSocket接口）。
@@ -231,121 +242,259 @@ class XianyuLive:
     async def handle_message(self, message_data, websocket):
         """处理所有类型的消息，包括聊天、订单、同步等"""
         try:
-
-            try:
-                message = message_data  # 直接引用原始消息
-                ack = {
-                    "code": 200,  # ACK响应码
-                    "headers": {
-                        "mid": message["headers"]["mid"] if "mid" in message["headers"] else generate_mid(),  # 消息ID
-                        "sid": message["headers"]["sid"] if "sid" in message["headers"] else '',  # 会话ID
-                    }
-                }
-                if 'app-key' in message["headers"]:
-                    ack["headers"]["app-key"] = message["headers"]["app-key"]
-                if 'ua' in message["headers"]:
-                    ack["headers"]["ua"] = message["headers"]["ua"]
-                if 'dt' in message["headers"]:
-                    ack["headers"]["dt"] = message["headers"]["dt"]
-                await websocket.send(json.dumps(ack))  # 发送ACK响应
-            except Exception as e:
-                pass  # ACK失败不影响后续处理
-
+            # 发送ACK响应
+            await self._send_ack_response(message_data, websocket)
+            
             # 如果不是同步包消息，直接返回
             if not self.is_sync_package(message_data):
                 return
 
-            # 获取并解密数据
+            # 获取并解密消息数据
+            message = await self._decrypt_sync_data(message_data)
+            if not message:
+                return
+                
+            # 判断消息类型
+            if self.is_typing_status(message):
+                return
+            elif not self.is_chat_message(message):
+                return
+        except Exception as e:
+            logger.error(f"处理消息时发生错误: {str(e)}")
+            logger.debug(f"原始消息: {message_data}")
+        try:
+            # 处理聊天消息
+            await self._process_chat_message(message, websocket)
+        except Exception as e:
+            logger.error(f"处理聊天消息时发生错误: {str(e)}")
+            logger.debug(f"原始消息: {message_data}")
+            
+
+
+    async def _send_ack_response(self, message_data, websocket):
+        """发送ACK响应确认收到消息"""
+        try:
+            message = message_data
+            ack = {
+                "code": 200,
+                "headers": {
+                    "mid": message["headers"]["mid"] if "mid" in message["headers"] else generate_mid(),
+                    "sid": message["headers"]["sid"] if "sid" in message["headers"] else '',
+                }
+            }
+            # 复制其他可能的header字段
+            for key in ["app-key", "ua", "dt"]:
+                if key in message["headers"]:
+                    ack["headers"][key] = message["headers"][key]
+            await websocket.send(json.dumps(ack))
+        except Exception:
+            pass  # ACK失败不影响后续处理
+
+    async def _decrypt_sync_data(self, message_data):
+        """解密同步包数据"""
+        try:
             sync_data = message_data["body"]["syncPushPackage"]["data"][0]
             
             # 检查是否有必要的字段
             if "data" not in sync_data:
                 logger.debug("同步包中无data字段")
-                return
+                return None
 
             # 解密数据
+            data = sync_data["data"]
             try:
-                data = sync_data["data"]
-                try:
-                    data = base64.b64decode(data).decode("utf-8")  # 尝试base64解码
-                    data = json.loads(data)  # 解码后转为JSON对象
-                    # logger.info(f"无需解密 message: {data}")
-                    return
-                except Exception as e:
-                    # logger.info(f'加密数据: {data}')
-                    decrypted_data = decrypt(data)  # 若解码失败则尝试自定义解密
-                    message = json.loads(decrypted_data)  # 解密后转为JSON对象
-            except Exception as e:
-                logger.error(f"消息解密失败: {e}")
-                return
+                data = base64.b64decode(data).decode("utf-8")  # 尝试base64解码
+                data = json.loads(data)  # 解码后转为JSON对象
+                return None
+            except Exception:
+                decrypted_data = decrypt(data)  # 若解码失败则尝试自定义解密
+                return json.loads(decrypted_data)  # 解密后转为JSON对象
+        except Exception as e:
+            logger.error(f"消息解密失败: {e}")
+            return None
 
-            # # 判断是否为订单消息, 需根据业务逻辑处理 对方把黄色按钮点灰色了
-            # try:
-            #     if message['3']['redReminder'] == '等待买家付款':
-            #         user_id = message['1'].split('@')[0]
-            #         user_url = f'https://www.goofish.com/personal?userId={user_id}'
-            #         logger.info(f'等待买家 {user_url} 付款')
-            #         return
-            #     elif message['3']['redReminder'] == '交易关闭':
-            #         user_id = message['1'].split('@')[0]
-            #         user_url = f'https://www.goofish.com/personal?userId={user_id}'
-            #         logger.info(f'卖家 {user_url} 交易关闭')
-            #         return
-            #     elif message['3']['redReminder'] == '等待卖家发货': # 付款后就有这个
-            #         user_id = message['1'].split('@')[0]
-            #         user_url = f'https://www.goofish.com/personal?userId={user_id}'
-            #         logger.info(f'交易成功 {user_url} 等待卖家发货')
-            #         return
-            # except:
-            #     pass  # 订单消息处理异常忽略
+    async def 自身消息测试(self,send_user_name,send_user_id,send_message,url_info,item_id,websocket,cid,myid):
+        """测试是否为自身消息的方法"""
+        if send_user_id != myid:return
+        await self.send_msg(websocket, cid, send_user_id, '我该说啥呢')
 
-            # 判断消息类型
-            if self.is_typing_status(message):
-                # logger.debug("用户正在输入")
-                return
-            elif not self.is_chat_message(message):
-                # logger.debug("其他非聊天消息")
-                # logger.debug(f"原始消息: {message}")
-                return
-
-            # 处理聊天消息 发货后，你已发货 会显示对方发来一条新消息
-            create_time = int(message["1"]["5"])  # 消息创建时间戳
-            send_user_name = message["1"]["10"]["reminderTitle"]  # 发送者昵称
-            send_user_id = message["1"]["10"]["senderUserId"]  # 发送者用户ID
-            if send_user_id == self.myid:return # 过滤自身消息
-            send_message = message["1"]["10"]["reminderContent"]  # 聊天内容
-            cid = message["1"]["2"].split('@')[0]  # 会话ID
-            url_info = message["1"]["10"]["reminderUrl"]  # 商品链接
-            item_id = url_info.split("itemId=")[1].split("&")[0] if "itemId=" in url_info else None  # 提取商品ID
-            if not item_id:return # 没有商品ID直接返回
-
+        # 超级简历验证码特殊情况
+        if send_message == '1':
+            await self.send_msg(websocket, cid, send_user_id, '开始测试')
+            await self.send_msg(websocket, cid, send_user_id, "手机号：19860510350 发送验证码后10秒，现在才返回你验证码，请等一会")
+            阻塞获取验证码, _ = self._获取超级简历验证码()
+            if 阻塞获取验证码:
+                await self.send_msg(websocket, cid, send_user_id, "验证码："+阻塞获取验证码)
+            else:
+                await self.send_msg(websocket, cid, send_user_id, "验证码获取失败你小子可能没用我手机发验证码哦，请联系管理员电话13631902746 wx：lanendiencgr")
+            await self.send_msg(websocket, cid, send_user_id, '测试结束')
+        
+        # 测试订单状态的超级简历vip
+        if send_message == '2':
             try:
-                task_name = json.loads(message["1"]["10"]['bizTag']).get('taskName', '')
-                if any(x in task_name for x in ['已拍下', '未付款']):
-                    await self.send_msg(websocket, cid, send_user_id, "等你付钱")
-                    if item_id == "926003417058":
-                        await self.send_msg(websocket, cid, send_user_id, "手机号：19860510350 尽快付款获取验证码登录")
-                        return
-                if any(x in task_name for x in ['已付款', '待发货']):
-                    await self.send_msg(websocket, cid, send_user_id, "等我发货")
-                    if item_id == "926003417058":
-                        print("开始获取验证码")
-                        阻塞获取验证码,_=self._获取超级简历验证码()
-                        if 阻塞获取验证码:
-                            await self.send_msg(websocket, cid, send_user_id, "验证码："+阻塞获取验证码)
-                        else:
-                            await self.send_msg(websocket, cid, send_user_id, "验证码获取失败你小子可能没用我手机发验证码哦，请联系管理员电话13631902746 wx：lanendiencgr")
-                    return
+                await self.send_msg(websocket, cid, send_user_id, '开始测试')
+                # 向数据库加一个订单
+                self.context_manager.add_order('666', '666', 0.8, "超级简历vip", 1, 1, send_user_name)
+                # 查询订单
+                orders = self.context_manager.get_order('666', '666')
+                if orders:
+                    print(orders)
+                    created_at = orders['created_at']
+                    if isinstance(created_at, str):
+                        # 假设格式为 "2025-05-26T02:47:42.508040"
+                        created_at = datetime.fromisoformat(created_at)
+                        print('创建日',created_at.strftime("%Y-%m-%d"))
+                        print('现在日',datetime.now().strftime("%Y-%m-%d"))
+                    if created_at.strftime("%Y-%m-%d") != datetime.now().strftime("%Y-%m-%d"):
+                        await self.send_msg(websocket, cid, send_user_id, "订单创建时间不是今天")
+                    else:
+                        await self.send_msg(websocket, cid, send_user_id, "订单创建时间是今天")
+                else:
+                    await self.send_msg(websocket, cid, send_user_id, "没有找到订单")
+                await self.send_msg(websocket, cid, send_user_id, '测试结束')
             except Exception as e:
-                logger.debug(f"解析bizTag出错: {e}")
+                logger.error(f"测试订单状态时发生错误: {e}")
+        
+        # 测试时间
+        if send_message == '3':
+            # 查询666,666订单
+            orders = self.context_manager.get_order('666', '666')
+            if orders:
+                created_at = orders['created_at']
+                if isinstance(created_at, str):
+                    # 假设格式为 "2025-05-26T02:47:42.508040"
+                    created_at = datetime.fromisoformat(created_at)
+                if created_at.strftime("%Y-%m-%d") != datetime.now().strftime("%Y-%m-%d"):
+                    await self.send_msg(websocket, cid, send_user_id, "订单创建时间不是今天")
+                else:
+                    await self.send_msg(websocket, cid, send_user_id, "订单创建时间是今天")
+            else:
+                await self.send_msg(websocket, cid, send_user_id, "没有找到订单")
+            await self.send_msg(websocket, cid, send_user_id, '测试结束')
 
-            # 时效性验证（过滤5分钟前消息）
-            if (time.time() * 1000 - create_time) > 300000:
-                logger.debug("当前消息是5分钟前，过期消息丢弃")
-                return
+
+        pass
+
+    async def _process_chat_message(self, message, websocket):
+        """处理聊天消息"""
+        # 提取消息基本信息
+        create_time = int(message["1"]["5"])  # 消息创建时间戳
+        send_user_name = message["1"]["10"]["reminderTitle"]  # 发送者昵称
+        send_user_id = message["1"]["10"]["senderUserId"]  # 发送者用户ID
+        send_message = message["1"]["10"]["reminderContent"]  # 聊天内容
+        cid = message["1"]["2"].split('@')[0]  # 会话ID
+        url_info = message["1"]["10"]["reminderUrl"]  # 商品链接
+        item_id = url_info.split("itemId=")[1].split("&")[0] if "itemId=" in url_info else None  # 提取商品ID
+        
+        # 基本验证
+        if not item_id:
+            return
+        
+        await self.自身消息测试(send_user_name,send_user_id,send_message,url_info,item_id,websocket,cid,self.myid)
+        if send_user_id == self.myid:
+            return  # 过滤自身消息
+        # 以下都是别人的消息
+
+        # 处理走关系通道
+        if await self._handle_走关系通道(item_id, send_message, cid, send_user_id, websocket):
+            return
+        
+        # 处理订单状态消息
+        if await self._handle_order_status(message, cid, send_user_id, item_id, websocket,send_user_name):
+            return
+        
+        # 处理特殊码信息，比如666这种关键信息
+        if await self._handle_已付款今天关键消息(item_id, send_user_id, send_user_name, send_message, cid, websocket):
+            return
+
+        # 时效性验证（过滤5分钟前消息）
+        if (time.time() * 1000 - create_time) > 300000:
+            logger.debug("当前消息是5分钟前，过期消息丢弃")
+            return
+        
+        # 获取商品信息并生成回复 兜底方案
+        await self._generate_and_send_reply(item_id, send_user_id, send_user_name, send_message, cid, websocket)
+
+    async def _handle_已付款今天关键消息(self, item_id, send_user_id, send_user_name, send_message, cid, websocket):
+        """处理特殊码信息，比如666这种关键信息"""
+        # 查询订单是否付款
+        orders = self.context_manager.get_order(send_user_id, item_id)
+        # 判断现在的时间是不是付款当天 2025-05-26T02:47:42.508040 
+        if not orders: # 不存在订单
+            return False
+        if orders['is_paid'] != 1: # 订单未付款
+            return False
+        created_at = orders['created_at']
+        if isinstance(created_at, str):
+            # 假设格式为 "2025-05-26T02:47:42.508040"
+            created_at = datetime.fromisoformat(created_at)
+        if created_at.strftime("%Y-%m-%d") != datetime.now().strftime("%Y-%m-%d"): # 订单不是今天付款的
+            return False
+        if await self._处理超级简历特殊今天关键信息(item_id, send_user_id, send_user_name, send_message, cid, websocket):
+            return True
+        return False
+    async def _处理超级简历特殊今天关键信息(self, item_id, send_user_id, send_user_name, send_message, cid, websocket):
+        """处理超级简历特殊今天关键信息"""
+        超级简历_msg_prefix = "（付款后一天内发我666我还会回你验证码）"
+        admin_contact = "请联系管理员电话13631902746 wx：lanendiencgr"
+        if item_id == "926003417058":
+            if send_message == '666':
+                验证码, _ = self._获取超级简历验证码()
+                if 验证码:
+                    await self.send_msg(websocket, cid, send_user_id, f"{超级简历_msg_prefix}验证码：{验证码}")
+                else:
+                    await self.send_msg(websocket, cid, send_user_id, f"{超级简历_msg_prefix}验证码获取失败你小子可能没用我手机发验证码哦，如果还不行{admin_contact}")
+        return False
+
+    async def _handle_走关系通道(self, item_id, send_message, cid, send_user_id, websocket):
+        """处理走关系通道相关逻辑"""
+        if item_id == "926003417058":
+            if send_message == 'lanendiencgr':
+                await self.send_msg(websocket, cid, send_user_id, "手机号：19860510350 发送验证码后10秒，现在才返回你验证码，请等一会")
+                阻塞获取验证码, _ = self._获取超级简历验证码()
+                if 阻塞获取验证码:
+                    await self.send_msg(websocket, cid, send_user_id, "验证码："+阻塞获取验证码)
+                else:
+                    await self.send_msg(websocket, cid, send_user_id, "验证码获取失败你小子可能没用我手机发验证码哦，请联系管理员电话13631902746 wx：lanendiencgr")
+                return True
+        return False
+
+    async def _handle_order_status(self, message, cid, send_user_id, item_id, websocket,send_user_name):
+        """处理订单状态相关逻辑"""
+        try:
+            task_name = json.loads(message["1"]["10"]['bizTag']).get('taskName', '')
             
+            # 处理已拍下未付款状态
+            if any(x in task_name for x in ['已拍下', '未付款']):
+                await self.send_msg(websocket, cid, send_user_id, "感谢您的拍下，祝您万事如意，付款后立刻安排发货！")
+                self.context_manager.add_order(send_user_id, item_id, self.商品信息字典[item_id]['价格'], self.商品信息字典[item_id]['商品信息'], 1,  0, send_user_name)
+                if item_id == "926003417058":
+                    await self.send_msg(websocket, cid, send_user_id, "手机号：19860510350 尽快付款获取验证码登录")
+                return True
+            
+            # 处理已付款待发货状态
+            if any(x in task_name for x in ['已付款', '待发货']):
+                await self.send_msg(websocket, cid, send_user_id, "等我发货")
+                self.context_manager.add_order(send_user_id, item_id, self.商品信息字典[item_id]['价格'], self.商品信息字典[item_id]['商品信息'], 1, 1, send_user_name)
+                if item_id == "926003417058":
+                    print("开始获取验证码")
+                    阻塞获取验证码, _ = self._获取超级简历验证码()
+                    if 阻塞获取验证码:
+                        await self.send_msg(websocket, cid, send_user_id, "（付款后一天内发我666我还会回你验证码）验证码："+阻塞获取验证码)
+                    else:
+                        await self.send_msg(websocket, cid, send_user_id, "（付款后一天内发我666我还会回你验证码）验证码获取失败你小子可能没用我手机发验证码哦，如果还不行请联系管理员电话13631902746 wx：lanendiencgr")
+                return True
+        except Exception as e:
+            logger.debug(f"解析bizTag出错: {e}")
+        
+        return False
+
+    async def _generate_and_send_reply(self, item_id, send_user_id, send_user_name, send_message, cid, websocket):
+        """生成并发送AI回复"""
+        try:
+            # 获取商品信息
             item_info = self.get_item_info_from_json_or_api(item_id)
-            item_description = f"{item_info['desc']};当前商品售卖价格为:{str(item_info['soldPrice'])}"  # 商品描述
+            item_description = f"{item_info['desc']};当前商品售卖价格为:{str(item_info['soldPrice'])}"
             
             logger.info(f"user: {send_user_name}, 发送消息: {send_message} 商品id: {item_id} 价格: {item_info['soldPrice']}")
             
@@ -355,35 +504,24 @@ class XianyuLive:
             # 获取完整的对话上下文
             context = self.context_manager.get_context(send_user_id, item_id)
             
+            # 构建提示词
             prompt = (
                 f"商品描述：{item_description}\n"+
                 f"当前商品售卖价格为:{str(item_info['soldPrice'])}\n"+
                 f"用户{send_user_name} 发送消息: {send_message}\n"+
                 f"历史对话上下文：{context}"
             )
-            bot_reply = 问ai(prompt,"你是咸鱼客服自动回复机器人，帮我回答用户的问题")
+
+            # 调用AI生成回复
+            bot_reply = 问ai(prompt, "你是咸鱼客服自动回复机器人，帮我回答用户的问题")
+            
+            # 发送回复
             await self.send_msg(websocket, cid, send_user_id, '（自动回复）：'+bot_reply)
+            
             # 添加机器人回复到上下文
             self.context_manager.add_message(send_user_id, item_id, "assistant", bot_reply)
-            
-            # # 生成回复
-            # bot_reply = bot.generate_reply(
-            #     send_message,
-            #     item_description,
-            #     context=context
-            # )
-            # # 检查是否为价格意图，如果是则增加议价次数
-            # if bot.last_intent == "price":
-            #     self.context_manager.increment_bargain_count(send_user_id, item_id)
-            #     bargain_count = self.context_manager.get_bargain_count(send_user_id, item_id)
-            #     logger.info(f"用户 {send_user_name} 对商品 {item_id} 的议价次数: {bargain_count}")
-            # 添加机器人回复到上下文
-            # self.context_manager.add_message(send_user_id, item_id, "assistant", bot_reply)
-
-            
         except Exception as e:
-            logger.error(f"处理消息时发生错误: {str(e)}")
-            logger.debug(f"原始消息: {message_data}")
+            logger.error(f"生成回复时发生错误: {str(e)}")
 
     async def send_heartbeat(self, ws):
         """发送心跳包并等待响应，保持连接活跃"""
@@ -482,21 +620,6 @@ class XianyuLive:
                             if await self.handle_heartbeat_response(message_data):
                                 continue
                             
-                            # 发送通用ACK响应
-                            if "headers" in message_data and "mid" in message_data["headers"]:
-                                ack = {
-                                    "code": 200,
-                                    "headers": {
-                                        "mid": message_data["headers"]["mid"],
-                                        "sid": message_data["headers"].get("sid", "")
-                                    }
-                                }
-                                # 复制其他可能的header字段
-                                for key in ["app-key", "ua", "dt"]:
-                                    if key in message_data["headers"]:
-                                        ack["headers"][key] = message_data["headers"][key]
-                                await websocket.send(json.dumps(ack))
-                            
                             # 处理其他消息
                             await self.handle_message(message_data, websocket)
                                 
@@ -529,13 +652,24 @@ class XianyuLive:
     def get_item_info_from_json_or_api(self, item_id):
         item = self.商品信息字典.get(item_id)
         if item:
+            # 读取商品信息字典成功！
+            logger.info(f"读取商品信息字典成功！商品信息：{item['商品信息']} 价格：{item['价格']}")
             return {
                 "desc": item["商品信息"],
                 "soldPrice": float(item["价格"])
             }
         else:
-            # 走原有API
-            return self.xianyu.get_item_info(self.cookies, item_id)['data']['itemDO']
+            # 当前是未知商品
+            logger.error(f"当前是未知商品：{item_id}")
+            # 尝试走原有API
+            try:
+                return self.xianyu.get_item_info(self.cookies, item_id)['data']['itemDO']
+            except Exception as e:
+                logger.error(f"获取商品信息失败: {e}")
+                return {
+                    "desc": "商品信息获取失败",
+                    "soldPrice": 0
+                }
 
 if __name__ == '__main__':
     # 加载环境变量中的cookie字符串
