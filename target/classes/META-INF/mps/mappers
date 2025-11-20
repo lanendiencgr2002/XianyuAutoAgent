@@ -1,0 +1,2 @@
+org.dromara.web.domain.vo.TenantListVoToSysTenantVoMapper
+org.dromara.system.domain.vo.SysTenantVoToTenantListVoMapper

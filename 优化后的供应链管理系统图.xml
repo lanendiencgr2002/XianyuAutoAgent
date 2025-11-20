@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxGraphModel dx="1600" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1200">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    
+    <!-- 标题 -->
+    <mxCell id="main_title" value="供应链管理系统架构图" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=24;fontStyle=1;fontColor=#2c3e50;" vertex="1" parent="1">
+      <mxGeometry x="600" y="30" width="400" height="40" as="geometry"/>
+    </mxCell>
+
+    <!-- 图例区域 -->
+    <mxCell id="legend_background" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ecf0f1;strokeColor=#bdc3c7;strokeWidth=2;" vertex="1" parent="1">
+      <mxGeometry x="40" y="90" width="520" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="legend_title" value="图例说明" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;fontColor=#2c3e50;" vertex="1" parent="1">
+      <mxGeometry x="60" y="100" width="100" height="25" as="geometry"/>
+    </mxCell>
+    
+    <mxCell id="legend_buyer" value="采购方" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2ecc71;strokeColor=#27ae60;fontSize=12;fontColor=white;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="60" y="130" width="80" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="legend_supplier" value="供应商" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f39c12;strokeColor=#e67e22;fontSize=12;fontColor=white;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="160" y="130" width="80" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="legend_sasac" value="国资委" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e74c3c;strokeColor=#c0392b;fontSize=12;fontColor=white;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="260" y="130" width="80" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="legend_platform" value="平台" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3498db;strokeColor=#2980b9;fontSize=12;fontColor=white;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="360" y="130" width="80" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="legend_shared" value="共享数据表" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#9b59b6;strokeColor=#8e44ad;fontSize=12;fontColor=white;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="460" y="130" width="80" height="30" as="geometry"/>
+    </mxCell>
+
+    <!-- 角色层 - 顶部 -->
+    <mxCell id="roles_background" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8f9fa;strokeColor=#dee2e6;strokeWidth=2;" vertex="1" parent="1">
+      <mxGeometry x="40" y="210" width="1520" height="140" as="geometry"/>
+    </mxCell>
+    <mxCell id="roles_title" value="系统角色层" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=18;fontStyle=1;fontColor=#2c3e50;" vertex="1" parent="1">
+      <mxGeometry x="60" y="220" width="120" height="30" as="geometry"/>
+    </mxCell>
+
+    <!-- 采购方 -->
+    <mxCell id="buyer_role" value="采购方&#xa;Buyer&#xa;&#xa;• 发起采购需求&#xa;• 管理采购订单&#xa;• 评估供应商&#xa;• 资金结算" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2ecc71;strokeColor=#27ae60;fontSize=12;align=center;verticalAlign=top;fontStyle=1;fontColor=white;" vertex="1" parent="1">
+      <mxGeometry x="100" y="260" width="160" height="80" as="geometry"/>
+    </mxCell>
+
+    <!-- 供应商 -->
+    <mxCell id="supplier_role" value="供应商&#xa;Supplier&#xa;&#xa;• 商品管理&#xa;• 订单处理&#xa;• 发货管理&#xa;• 评价查看" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f39c12;strokeColor=#e67e22;fontSize=12;align=center;verticalAlign=top;fontStyle=1;fontColor=white;" vertex="1" parent="1">
+      <mxGeometry x="300" y="260" width="160" height="80" as="geometry"/>
+    </mxCell>
+
+    <!-- 国资委 -->
+    <mxCell id="sasac_role" value="国资委&#xa;SASAC&#xa;&#xa;• 资金监管&#xa;• 合规审计&#xa;• 风险控制&#xa;• 供应商评估" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e74c3c;strokeColor=#c0392b;fontSize=12;align=center;verticalAlign=top;fontStyle=1;fontColor=white;" vertex="1" parent="1">
+      <mxGeometry x="500" y="260" width="160" height="80" as="geometry"/>
+    </mxCell>
+
+    <!-- 平台管理 -->
+    <mxCell id="platform_role" value="平台管理&#xa;Platform&#xa;&#xa;• 系统管理&#xa;• 数据统计分析&#xa;• 风控规则管理&#xa;• 佣金结算&#xa;• 系统公告" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3498db;strokeColor=#2980b9;fontSize=12;align=center;verticalAlign=top;fontStyle=1;fontColor=white;" vertex="1" parent="1">
+      <mxGeometry x="700" y="260" width="160" height="80" as="geometry"/>
+    </mxCell>
+
+    <!-- 核心业务数据层 -->
+    <mxCell id="core_data_background" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8f9fa;strokeColor=#dee2e6;strokeWidth=2;" vertex="1" parent="1">
+      <mxGeometry x="40" y="390" width="1520" height="200" as="geometry"/>
+    </mxCell>
+    <mxCell id="core_data_title" value="核心业务数据层" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=18;fontStyle=1;fontColor=#2c3e50;" vertex="1" parent="1">
+      <mxGeometry x="60" y="400" width="160" height="30" as="geometry"/>
+    </mxCell>
+
+    <!-- 商品表 -->
+    <mxCell id="product_table" value="商品表&#xa;gongyinglian_product&#xa;&#xa;• 商品基本信息&#xa;• 规格参数&#xa;• 价格体系&#xa;• 库存状态" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#9b59b6;strokeColor=#8e44ad;fontSize=11;align=center;verticalAlign=top;fontStyle=1;fontColor=white;" vertex="1" parent="1">
+      <mxGeometry x="100" y="440" width="160" height="120" as="geometry"/>
+    </mxCell>
+
+    <!-- 采购订单表 -->
+    <mxCell id="purchase_order_table" value="采购订单表&#xa;gongyinglian_purchase_order&#xa;&#xa;• 订单基本信息&#xa;• 采购方信息&#xa;• 供应商信息&#xa;• 订单状态&#xa;• 总金额" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#9b59b6;strokeColor=#8e44ad;fontSize=11;align=center;verticalAlign=top;fontStyle=1;fontColor=white;" vertex="1" parent="1">
+      <mxGeometry x="300" y="440" width="160" height="120" as="geometry"/>
+    </mxCell>
+
+    <!-- 订单明细表 -->
+    <mxCell id="order_detail_table" value="订单明细表&#xa;gongyinglian_purchase_order_detail&#xa;&#xa;• 商品明细&#xa;• 数量价格&#xa;• 小计金额&#xa;• 规格信息" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#9b59b6;strokeColor=#8e44ad;fontSize=11;align=center;verticalAlign=top;fontStyle=1;fontColor=white;" vertex="1" parent="1">
+      <mxGeometry x="500" y="440" width="160" height="120" as="geometry"/>
+    </mxCell>
+
+    <!-- 资金结算表 -->
+    <mxCell id="fund_settlement_table" value="资金结算表&#xa;gongyinglian_fund_settlement&#xa;&#xa;• 结算金额&#xa;• 结算状态&#xa;• 交易流水号&#xa;• 安全验证&#xa;• 时间戳" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#9b59b6;strokeColor=#8e44ad;fontSize=11;align=center;verticalAlign=top;fontStyle=1;fontColor=white;" vertex="1" parent="1">
+      <mxGeometry x="700" y="440" width="160" height="120" as="geometry"/>
+    </mxCell>
+
+    <!-- 审计记录表 -->
+    <mxCell id="audit_record_table" value="审计记录表&#xa;gongyinglian_audit_record&#xa;&#xa;• 审计事件类型&#xa;• 风险等级&#xa;• 处理状态&#xa;• 告警密度&#xa;• 责任人" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#9b59b6;strokeColor=#8e44ad;fontSize=11;align=center;verticalAlign=top;fontStyle=1;fontColor=white;" vertex="1" parent="1">
+      <mxGeometry x="900" y="440" width="160" height="120" as="geometry"/>
+    </mxCell>
+
+    <!-- 供应商评价表 -->
+    <mxCell id="supplier_evaluation_table" value="供应商评价表&#xa;gongyinglian_supplier_evaluation&#xa;&#xa;• 供应商评级&#xa;• 评价指标体系&#xa;• 历史记录&#xa;• 综合得分" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#9b59b6;strokeColor=#8e44ad;fontSize=11;align=center;verticalAlign=top;fontStyle=1;fontColor=white;" vertex="1" parent="1">
+      <mxGeometry x="1100" y="440" width="160" height="120" as="geometry"/>
+    </mxCell>
+
+    <!-- 平台管理数据层 -->
+    <mxCell id="platform_data_background" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ebf3fd;strokeColor=#6c8ebf;strokeWidth=2;" vertex="1" parent="1">
+      <mxGeometry x="40" y="630" width="1520" height="160" as="geometry"/>
+    </mxCell>
+    <mxCell id="platform_data_title" value="平台管理数据层" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=18;fontStyle=1;fontColor=#2c3e50;" vertex="1" parent="1">
+      <mxGeometry x="60" y="640" width="160" height="30" as="geometry"/>
+    </mxCell>
+
+    <!-- 风控规则表 -->
+    <mxCell id="risk_control_table" value="风控规则表&#xa;gongyinglian_risk_control_rule&#xa;&#xa;• 规则类型&#xa;• 触发条件&#xa;• 处理策略" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3498db;strokeColor=#2980b9;fontSize=11;align=center;verticalAlign=top;fontStyle=1;fontColor=white;" vertex="1" parent="1">
+      <mxGeometry x="100" y="680" width="180" height="90" as="geometry"/>
+    </mxCell>
+
+    <!-- 供应商风险评估表 -->
+    <mxCell id="supplier_risk_table" value="供应商风险评估表&#xa;gongyinglian_supplier_risk_assessment&#xa;&#xa;• 风险指标&#xa;• 评估结果&#xa;• 预警等级" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3498db;strokeColor=#2980b9;fontSize=11;align=center;verticalAlign=top;fontStyle=1;fontColor=white;" vertex="1" parent="1">
+      <mxGeometry x="320" y="680" width="200" height="90" as="geometry"/>
+    </mxCell>
+
+    <!-- 风险事件表 -->
+    <mxCell id="risk_event_table" value="风险事件表&#xa;gongyinglian_risk_event&#xa;&#xa;• 事件类型&#xa;• 发生时间&#xa;• 影响程度" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3498db;strokeColor=#2980b9;fontSize=11;align=center;verticalAlign=top;fontStyle=1;fontColor=white;" vertex="1" parent="1">
+      <mxGeometry x="560" y="680" width="180" height="90" as="geometry"/>
+    </mxCell>
+
+    <!-- 佣金结算表 -->
+    <mxCell id="commission_table" value="佣金结算表&#xa;gongyinglian_commission_settlement&#xa;&#xa;• 佣金费率&#xa;• 结算周期&#xa;• 结算状态" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3498db;strokeColor=#2980b9;fontSize=11;align=center;verticalAlign=top;fontStyle=1;fontColor=white;" vertex="1" parent="1">
+      <mxGeometry x="780" y="680" width="190" height="90" as="geometry"/>
+    </mxCell>
+
+    <!-- 系统公告表 -->
+    <mxCell id="announcement_table" value="系统公告表&#xa;gongyinglian_system_announcement&#xa;&#xa;• 公告内容&#xa;• 发布范围&#xa;• 有效期" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3498db;strokeColor=#2980b9;fontSize=11;align=center;verticalAlign=top;fontStyle=1;fontColor=white;" vertex="1" parent="1">
+      <mxGeometry x="1010" y="680" width="190" height="90" as="geometry"/>
+    </mxCell>
+
+    <!-- 角色到核心表的连接 - 采购方 -->
+    <mxCell id="buyer_to_order" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#27ae60;strokeWidth=3;endArrow=classic;" edge="1" parent="1" source="buyer_role" target="purchase_order_table">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="buyer_to_fund" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#27ae60;strokeWidth=2;endArrow=classic;" edge="1" parent="1" source="buyer_role" target="fund_settlement_table">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="buyer_to_evaluation" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#27ae60;strokeWidth=2;endArrow=classic;" edge="1" parent="1" source="buyer_role" target="supplier_evaluation_table">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- 角色到核心表的连接 - 供应商 -->
+    <mxCell id="supplier_to_product" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#e67e22;strokeWidth=3;endArrow=classic;" edge="1" parent="1" source="supplier_role" target="product_table">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="supplier_to_order" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#e67e22;strokeWidth=2;endArrow=classic;" edge="1" parent="1" source="supplier_role" target="purchase_order_table">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- 角色到核心表的连接 - 国资委 -->
+    <mxCell id="sasac_to_fund" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#c0392b;strokeWidth=3;endArrow=classic;" edge="1" parent="1" source="sasac_role" target="fund_settlement_table">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="sasac_to_audit" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#c0392b;strokeWidth=3;endArrow=classic;" edge="1" parent="1" source="sasac_role" target="audit_record_table">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="sasac_to_evaluation" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#c0392b;strokeWidth=2;endArrow=classic;" edge="1" parent="1" source="sasac_role" target="supplier_evaluation_table">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- 平台到所有表的管理连接 -->
+    <mxCell id="platform_to_all1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#2980b9;strokeWidth=2;endArrow=classic;dashed=1;" edge="1" parent="1" source="platform_role" target="product_table">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="platform_to_all2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#2980b9;strokeWidth=2;endArrow=classic;dashed=1;" edge="1" parent="1" source="platform_role" target="purchase_order_table">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="platform_to_all3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#2980b9;strokeWidth=2;endArrow=classic;dashed=1;" edge="1" parent="1" source="platform_role" target="order_detail_table">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="platform_to_all4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#2980b9;strokeWidth=2;endArrow=classic;dashed=1;" edge="1" parent="1" source="platform_role" target="fund_settlement_table">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="platform_to_all5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#2980b9;strokeWidth=2;endArrow=classic;dashed=1;" edge="1" parent="1" source="platform_role" target="audit_record_table">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="platform_to_all6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#2980b9;strokeWidth=2;endArrow=classic;dashed=1;" edge="1" parent="1" source="platform_role" target="supplier_evaluation_table">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- 平台到专属表的连接 -->
+    <mxCell id="platform_to_risk_control" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#2980b9;strokeWidth=3;endArrow=classic;" edge="1" parent="1" source="platform_role" target="risk_control_table">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="platform_to_supplier_risk" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#2980b9;strokeWidth=3;endArrow=classic;" edge="1" parent="1" source="platform_role" target="supplier_risk_table">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="platform_to_risk_event" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#2980b9;strokeWidth=3;endArrow=classic;" edge="1" parent="1" source="platform_role" target="risk_event_table">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="platform_to_commission" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#2980b9;strokeWidth=3;endArrow=classic;" edge="1" parent="1" source="platform_role" target="commission_table">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="platform_to_announcement" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#2980b9;strokeWidth=3;endArrow=classic;" edge="1" parent="1" source="platform_role" target="announcement_table">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- 表间关系连接 -->
+    <mxCell id="order_to_detail" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#7f8c8d;strokeWidth=2;endArrow=classic;" edge="1" parent="1" source="purchase_order_table" target="order_detail_table">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="product_to_detail" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#7f8c8d;strokeWidth=2;endArrow=classic;" edge="1" parent="1" source="product_table" target="order_detail_table">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- 关键指标说明区域 -->
+    <mxCell id="metrics_background" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3cd;strokeColor=#ffeaa7;strokeWidth=2;" vertex="1" parent="1">
+      <mxGeometry x="40" y="830" width="760" height="120" as="geometry"/>
+    </mxCell>
+    <mxCell id="metrics_title" value="关键风控指标" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;fontColor=#2c3e50;" vertex="1" parent="1">
+      <mxGeometry x="60" y="840" width="150" height="25" as="geometry"/>
+    </mxCell>
+    
+    <mxCell id="metrics_content" value="• 资金安全率：(安全资金交易量 / 总资金交易量) × 100%&#xa;• 订单风险指数：异常订单占总订单的比例 ≤ 5%&#xa;• 审计告警密度：平均每天审计告警事件次数 ≤ 10次&#xa;• 供应商信用评级：A级供应商占比 ≥ 80%" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;fontSize=12;align=left;verticalAlign=top;fontColor=#2c3e50;" vertex="1" parent="1">
+      <mxGeometry x="60" y="870" width="720" height="70" as="geometry"/>
+    </mxCell>
+
+    <!-- 连接线说明区域 -->
+    <mxCell id="connection_background" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e8;strokeColor=#c3e6c3;strokeWidth=2;" vertex="1" parent="1">
+      <mxGeometry x="840" y="830" width="400" height="120" as="geometry"/>
+    </mxCell>
+    <mxCell id="connection_title" value="连接线说明" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;fontColor=#2c3e50;" vertex="1" parent="1">
+      <mxGeometry x="860" y="840" width="120" height="25" as="geometry"/>
+    </mxCell>
+    
+    <mxCell id="connection_content" value="━━━ 粗实线：主要业务权限访问&#xa;──── 细实线：次要业务权限访问&#xa;┅┅┅ 虚线：平台管理权限&#xa;──▸ 箭头：数据流向和访问关系" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;fontSize=12;align=left;verticalAlign=top;fontColor=#2c3e50;" vertex="1" parent="1">
+      <mxGeometry x="860" y="870" width="360" height="70" as="geometry"/>
+    </mxCell>
+
+  </root>
+</mxGraphModel> 
